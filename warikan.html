@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>飲み会 割り勘アプリ</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:  #002855;
+      --navy2: #003A7A;
+      --gold:  #C8922A;
+      --gold2: #E8A830;
+      --white: #ffffff;
+      --light: #F4F7FB;
+      --gray:  #6B7280;
+      --text:  #1A2340;
+    }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background: var(--light);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--navy);
+      padding: 0 32px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    .logo-mark {
+      width: 30px; height: 30px;
+      background: var(--gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 900; color: #fff;
+      letter-spacing: -1px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .logo-text {
+      color: #fff;
+      font-size: 0.82rem;
+      letter-spacing: 0.05em;
+      line-height: 1.3;
+      font-weight: 500;
+    }
+    .header-sub {
+      margin-left: auto;
+      color: rgba(255,255,255,0.55);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+    }
+    .btn-settings {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.7);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      padding: 5px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-left: 16px;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .btn-settings:hover { background: rgba(255,255,255,0.18); color: #fff; }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,20,50,0.6);
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 4px;
+      border-top: 4px solid var(--gold);
+      padding: 32px 28px;
+      width: min(420px, 92vw);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal h3 {
+      font-size: 0.88rem; font-weight: 700; color: var(--navy);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .modal label { font-size: 0.8rem; color: var(--gray); display: block; margin-bottom: 4px; }
+    .modal input[type="text"] {
+      width: 100%; padding: 10px 12px;
+      border: 1.5px solid #D1D9E6; border-radius: 4px;
+      font-size: 0.95rem; color: var(--navy); font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .modal input[type="text"]:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,146,42,0.12); }
+    .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+    .btn-modal-cancel {
+      padding: 9px 20px; border: 1.5px solid #D1D9E6;
+      border-radius: 4px; font-size: 0.85rem; cursor: pointer;
+      background: #fff; color: var(--gray);
+    }
+    .btn-modal-save {
+      padding: 9px 24px; border: none;
+      border-radius: 4px; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; background: var(--navy); color: #fff;
+    }
+    .btn-modal-save:hover { background: var(--navy2); }
+
+    /* GOLD BAR */
+    .gold-bar { height: 3px; background: linear-gradient(90deg, var(--gold), var(--navy2)); }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, #001836 0%, var(--navy) 60%, var(--navy2) 100%);
+      padding: 40px 32px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 90% at 50% 50%, rgba(200,146,42,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--gold2);
+      font-size: 0.7rem; letter-spacing: 0.18em; font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .hero-eyebrow::before, .hero-eyebrow::after {
+      content: ""; display: block; width: 20px; height: 1px; background: var(--gold2);
+    }
+    .hero h1 {
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      line-height: 1.4;
+      font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+      position: relative; z-index: 1;
+    }
+    .hero h1 span { color: var(--gold2); }
+    .hero-sub {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.8rem;
+      margin-top: 10px;
+      letter-spacing: 0.06em;
+      position: relative; z-index: 1;
+    }
+
+    /* MAIN */
+    main { max-width: 720px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    /* CARD */
+    .card {
+      background: var(--white);
+      border-radius: 2px;
+      border-top: 3px solid var(--gold);
+      box-shadow: 0 2px 12px rgba(0,40,85,0.08);
+      padding: 24px 24px 20px;
+      margin-bottom: 20px;
+    }
+    .card-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #E5EAF2;
+    }
+    .card-header-dot {
+      width: 8px; height: 8px;
+      background: var(--gold); border-radius: 50%;
+    }
+    .card-header h2 {
+      font-size: 0.88rem;
+      color: var(--navy);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* 合計金額 */
+    .total-input-wrap { position: relative; }
+    .total-input-wrap input {
+      width: 100%;
+      padding: 14px 48px 14px 16px;
+      border: 1.5px solid #D1D9E6;
+      border-radius: 4px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: 0.04em;
+      transition: border-color 0.2s;
+    }
+    .total-input-wrap input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,146,42,0.12); }
+    .total-input-wrap .unit {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      color: var(--gray); font-size: 0.9rem; font-weight: 600;
+    }
+
+    /* 傾斜パターン */
+    .pattern-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .pattern-btn {
+      padding: 12px 4px 10px;
+      border: 1.5px solid #D1D9E6;
+      border-radius: 4px;
+      background: var(--light);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .pattern-btn:hover { border-color: var(--gold); background: #FDF6EC; }
+    .pattern-btn.active {
+      border-color: var(--gold);
+      background: #FDF6EC;
+      box-shadow: 0 0 0 2px rgba(200,146,42,0.2);
+    }
+    .pattern-btn .p-name {
+      font-size: 0.82rem; font-weight: 700;
+      color: var(--navy); margin-bottom: 5px;
+    }
+    .pattern-btn.active .p-name { color: var(--gold); }
+    .pattern-btn .p-bars {
+      display: flex; align-items: flex-end; justify-content: center;
+      gap: 2px; height: 20px;
+    }
+    .p-bar { width: 5px; background: #D1D9E6; border-radius: 1px; }
+    .pattern-btn.active .p-bar { background: var(--gold2); }
+    .pattern-btn .p-desc {
+      font-size: 0.65rem; color: var(--gray);
+      margin-top: 5px; line-height: 1.4;
+    }
+    .pattern-btn.active .p-desc { color: var(--gold); }
+
+    /* 人数入力 */
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .role-item {}
+    .role-label {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .role-name {
+      font-size: 1rem; font-weight: 700; color: var(--navy);
+      letter-spacing: 0.06em;
+    }
+    .role-rate {
+      font-size: 0.68rem; color: var(--gold);
+      font-weight: 700; letter-spacing: 0.04em;
+      background: #FDF6EC;
+      padding: 2px 6px; border-radius: 2px;
+    }
+    .role-item input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #D1D9E6;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--navy);
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+    .role-item input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,146,42,0.12); }
+
+    /* 計算ボタン */
+    .btn-calc {
+      display: block; width: 100%;
+      padding: 15px;
+      background: var(--navy);
+      color: var(--white);
+      border: none; border-radius: 4px;
+      font-size: 1rem; font-weight: 700;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .btn-calc::before {
+      content: "";
+      position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+      background: var(--gold);
+    }
+    .btn-calc:hover { background: var(--navy2); }
+
+    /* RESULT */
+    #result { display: none; }
+    .result-meta {
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: var(--light);
+      border-radius: 4px;
+      border-left: 3px solid var(--gold);
+    }
+    .result-meta-item { font-size: 0.8rem; color: var(--gray); }
+    .result-meta-item strong { color: var(--navy); font-size: 0.95rem; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    thead th {
+      background: var(--navy);
+      color: rgba(255,255,255,0.85);
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+    thead th:not(:first-child) { text-align: right; }
+    tbody td { padding: 10px 12px; border-bottom: 1px solid #E5EAF2; color: var(--text); }
+    tbody td:not(:first-child) { text-align: right; }
+    tbody tr:hover td { background: #F9FBFF; }
+    .td-role { font-weight: 700; color: var(--navy); font-size: 1rem; letter-spacing: 0.06em; }
+    .td-amount { font-weight: 700; color: #1B5E3B; }
+    tfoot td {
+      padding: 12px;
+      background: var(--navy);
+      color: rgba(255,255,255,0.9);
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+    tfoot td:not(:first-child) { text-align: right; }
+    tfoot .td-amount { color: var(--gold2); font-size: 1rem; }
+
+    /* バーチャート */
+    .bar-section { margin-top: 20px; }
+    .bar-section-title {
+      font-size: 0.72rem; color: var(--gray);
+      letter-spacing: 0.1em; font-weight: 700;
+      margin-bottom: 10px; text-transform: uppercase;
+    }
+    .bar-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 7px; font-size: 0.82rem;
+    }
+    .bar-label { width: 30px; font-weight: 700; color: var(--navy); }
+    .bar-track {
+      flex: 1; height: 14px;
+      background: #E5EAF2; border-radius: 2px; overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      border-radius: 2px;
+      transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    }
+    .bar-val { width: 80px; text-align: right; font-weight: 700; color: #1B5E3B; font-size: 0.82rem; }
+
+    .note { font-size: 0.72rem; color: var(--gray); margin-top: 12px; text-align: right; }
+
+    /* FOOTER */
+    footer {
+      background: #001122;
+      color: rgba(255,255,255,0.35);
+      font-size: 0.72rem;
+      text-align: center;
+      padding: 16px;
+      letter-spacing: 0.06em;
+    }
+
+    /* ===== MOBILE ===== */
+    @media (max-width: 600px) {
+      /* ヘッダー */
+      header { padding: 0 16px; gap: 10px; }
+      .header-sub { display: none; }
+      .btn-settings { margin-left: 0; padding: 6px 10px; font-size: 0; }
+      .btn-settings::before { content: "⚙"; font-size: 1rem; }
+
+      /* ヒーロー */
+      .hero { padding: 28px 16px 36px; }
+      .hero h1 { font-size: 1.25rem; }
+
+      /* メイン */
+      main { padding: 16px 12px 80px; }
+
+      /* カード */
+      .card { padding: 16px 14px 14px; margin-bottom: 14px; }
+
+      /* 合計入力: 16px以上でiOS自動ズーム防止 */
+      .total-input-wrap input { font-size: 1.6rem; padding: 12px 44px 12px 14px; }
+
+      /* パターン: 横スクロール */
+      .pattern-grid {
+        grid-template-columns: repeat(5, minmax(64px, 1fr));
+        gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .pattern-btn { padding: 10px 2px 8px; }
+      .pattern-btn .p-name { font-size: 0.72rem; }
+      .pattern-btn .p-desc { font-size: 0.6rem; }
+      .p-bar { width: 4px; }
+
+      /* 人数入力: 2列に */
+      .role-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      /* タップ高さ確保 */
+      .role-item input { padding: 12px; font-size: 1rem; min-height: 48px; }
+
+      /* 計算ボタン */
+      .btn-calc { padding: 16px; font-size: 1rem; letter-spacing: 0.06em; }
+
+      /* 結果テーブル: 横スクロール */
+      .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table { font-size: 0.82rem; min-width: 360px; }
+      thead th { padding: 8px; font-size: 0.7rem; }
+      tbody td { padding: 9px 8px; }
+      tfoot td { padding: 10px 8px; }
+
+      /* result-meta縦並び */
+      .result-meta { flex-direction: column; gap: 4px; }
+
+      /* バー */
+      .bar-val { width: 72px; font-size: 0.78rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 設定モーダル -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3>会社情報の設定</h3>
+    <label>会社名</label>
+    <input type="text" id="input-company" placeholder="例：株式会社〇〇" maxlength="30">
+    <label>ロゴ文字（2文字）</label>
+    <input type="text" id="input-logo" placeholder="例：AB" maxlength="2">
+    <div class="modal-btns">
+      <button class="btn-modal-cancel" onclick="closeModal()">キャンセル</button>
+      <button class="btn-modal-save" onclick="saveSettings()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="logo-mark" id="logo-mark" onclick="openModal()" title="会社情報を設定">TM</div>
+  <div class="logo-text" id="logo-text">会社名未設定<br>飲み会 割り勘アプリ</div>
+  <div class="header-sub">WARIKAN SYSTEM</div>
+  <button class="btn-settings" onclick="openModal()">⚙ 会社情報を設定</button>
+</header>
+<div class="gold-bar"></div>
+
+<div class="hero">
+  <div class="hero-eyebrow">COMPANY PARTY SPLIT</div>
+  <h1>役職別<span>傾斜割り勘</span>計算</h1>
+  <p class="hero-sub">役職・人数・傾斜パターンを選ぶだけで自動計算</p>
+</div>
+
+<main>
+
+  <!-- 合計金額 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-dot"></div>
+      <h2>合計金額</h2>
+    </div>
+    <div class="total-input-wrap">
+      <input type="number" id="total" placeholder="0" min="0">
+      <span class="unit">円</span>
+    </div>
+  </div>
+
+  <!-- 傾斜パターン -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-dot"></div>
+      <h2>傾斜パターン</h2>
+    </div>
+    <div class="pattern-grid" id="pattern-grid"></div>
+  </div>
+
+  <!-- 人数入力 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-dot"></div>
+      <h2>役職別人数</h2>
+    </div>
+    <div class="role-grid" id="role-inputs"></div>
+  </div>
+
+  <button class="btn-calc" onclick="calculate()">計　算　す　る</button>
+
+  <!-- 結果 -->
+  <div class="card" id="result" style="margin-top:24px;">
+    <div class="card-header">
+      <div class="card-header-dot"></div>
+      <h2>計算結果</h2>
+    </div>
+    <div class="result-meta">
+      <div class="result-meta-item">合計金額　<strong id="res-total"></strong></div>
+      <div class="result-meta-item">参加者　<strong id="res-count"></strong> 名</div>
+      <div class="result-meta-item">パターン　<strong id="res-pattern"></strong></div>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>役職</th>
+          <th>人数</th>
+          <th>倍率</th>
+          <th>1人あたり</th>
+          <th>小計</th>
+        </tr>
+      </thead>
+      <tbody id="res-body"></tbody>
+      <tfoot id="res-foot"></tfoot>
+    </table>
+    </div>
+    <div class="bar-section">
+      <div class="bar-section-title">1人あたり負担額（比較）</div>
+      <div id="bar-wrap"></div>
+    </div>
+    <p class="note">※ 端数は最上位参加役職に加算</p>
+  </div>
+
+</main>
+
+<footer id="footer-text">社内用ツール — 傾斜割り勘システム</footer>
+
+<script>
+  // 会社情報
+  function loadSettings() {
+    const company = localStorage.getItem("warikan_company") || "";
+    const logo    = localStorage.getItem("warikan_logo")    || "";
+    if (company) {
+      document.getElementById("logo-text").innerHTML = company + "<br>飲み会 割り勘アプリ";
+      document.getElementById("footer-text").textContent = "© " + company + " — 社内用ツール";
+    }
+    if (logo) {
+      document.getElementById("logo-mark").textContent = logo.slice(0,2).toUpperCase();
+    }
+  }
+  function openModal() {
+    document.getElementById("input-company").value = localStorage.getItem("warikan_company") || "";
+    document.getElementById("input-logo").value    = localStorage.getItem("warikan_logo")    || "";
+    document.getElementById("modal").classList.add("open");
+    document.getElementById("input-company").focus();
+  }
+  function closeModal() {
+    document.getElementById("modal").classList.remove("open");
+  }
+  function saveSettings() {
+    const company = document.getElementById("input-company").value.trim();
+    const logo    = document.getElementById("input-logo").value.trim();
+    if (!company) return alert("会社名を入力してください");
+    localStorage.setItem("warikan_company", company);
+    localStorage.setItem("warikan_logo",    logo || company.slice(0,2));
+    loadSettings();
+    closeModal();
+  }
+  document.getElementById("modal").addEventListener("click", e => {
+    if (e.target === document.getElementById("modal")) closeModal();
+  });
+
+  const ROLES = ["DH","SC","MG","UL","SA","A"];
+
+  const PATTERNS = [
+    { name:"均等",   desc:"全員同額",   rates:[1,1,1,1,1,1],        heights:[4,4,4,4,4,4] },
+    { name:"緩やか", desc:"上位\n少し多め", rates:[2.5,2,1.5,1.2,1,0.7], heights:[20,16,12,10,8,5] },
+    { name:"標準",   desc:"役職差\n反映", rates:[4,3,2,1.5,1,0.5],     heights:[20,15,10,8,5,3] },
+    { name:"急勾配", desc:"上位が\n大きく負担", rates:[7,5,3,1.5,1,0.5],  heights:[20,14,8,4,3,2] },
+    { name:"上位\n集中", desc:"下位は\nほぼ無料", rates:[10,7,4,1.5,0.5,0.2], heights:[20,14,8,3,1,1] },
+  ];
+
+  let selectedPattern = 2;
+
+  function renderPatterns() {
+    document.getElementById("pattern-grid").innerHTML = PATTERNS.map((p, i) => {
+      const bars = p.heights.map(h => `<div class="p-bar" style="height:${h}px"></div>`).join("");
+      return `<div class="pattern-btn ${i===selectedPattern?"active":""}" onclick="selectPattern(${i})">
+        <div class="p-name">${p.name.replace("\n","<br>")}</div>
+        <div class="p-bars">${bars}</div>
+        <div class="p-desc">${p.desc.replace("\n","<br>")}</div>
+      </div>`;
+    }).join("");
+  }
+
+  function selectPattern(i) {
+    selectedPattern = i;
+    renderPatterns();
+    renderInputs();
+  }
+
+  function renderInputs() {
+    const rates = PATTERNS[selectedPattern].rates;
+    document.getElementById("role-inputs").innerHTML = ROLES.map((r, i) => `
+      <div class="role-item">
+        <div class="role-label">
+          <span class="role-name">${r}</span>
+          <span class="role-rate">×${rates[i]}</span>
+        </div>
+        <input type="number" id="count-${i}" min="0" value="0" placeholder="0">
+      </div>
+    `).join("");
+  }
+
+  function calculate() {
+    const total = parseInt(document.getElementById("total").value);
+    if (!total || total <= 0) return alert("合計金額を入力してください");
+
+    const rates = PATTERNS[selectedPattern].rates;
+    const counts = ROLES.map((_, i) => parseInt(document.getElementById(`count-${i}`).value) || 0);
+    const totalPeople = counts.reduce((s,c) => s+c, 0);
+    if (totalPeople === 0) return alert("参加者の人数を入力してください");
+
+    const totalRate = counts.reduce((s,c,i) => s + c*rates[i], 0);
+    const unit = total / totalRate;
+    let perPerson = rates.map(r => Math.floor(unit * r));
+    let subtotals = counts.map((c,i) => c * perPerson[i]);
+    const diff = total - subtotals.reduce((s,v) => s+v, 0);
+    const topIdx = counts.findIndex(c => c > 0);
+    if (topIdx >= 0) subtotals[topIdx] += diff;
+
+    const maxPP = Math.max(...ROLES.map((_,i) => counts[i] > 0 ? Math.round(subtotals[i]/counts[i]) : 0));
+
+    // テーブル
+    let rows = "";
+    let grandTotal = 0, grandCount = 0;
+    ROLES.forEach((r, i) => {
+      if (counts[i] === 0) return;
+      const pp = Math.round(subtotals[i] / counts[i]);
+      grandTotal += subtotals[i];
+      grandCount += counts[i];
+      rows += `<tr>
+        <td class="td-role">${r}</td>
+        <td>${counts[i]} 名</td>
+        <td>× ${rates[i]}</td>
+        <td class="td-amount">${pp.toLocaleString()} 円</td>
+        <td class="td-amount">${subtotals[i].toLocaleString()} 円</td>
+      </tr>`;
+    });
+    document.getElementById("res-body").innerHTML = rows;
+    document.getElementById("res-foot").innerHTML = `<tr>
+      <td>合　計</td><td>${grandCount} 名</td><td>—</td><td>—</td>
+      <td class="td-amount">${grandTotal.toLocaleString()} 円</td>
+    </tr>`;
+
+    // バー
+    document.getElementById("bar-wrap").innerHTML = ROLES.map((r, i) => {
+      if (counts[i] === 0) return "";
+      const pp = Math.round(subtotals[i] / counts[i]);
+      const pct = maxPP > 0 ? (pp / maxPP * 100).toFixed(1) : 0;
+      return `<div class="bar-row">
+        <span class="bar-label">${r}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <span class="bar-val">${pp.toLocaleString()}円</span>
+      </div>`;
+    }).join("");
+
+    document.getElementById("res-total").textContent = total.toLocaleString() + " 円";
+    document.getElementById("res-count").textContent = totalPeople;
+    document.getElementById("res-pattern").textContent = PATTERNS[selectedPattern].name.replace("\n","");
+
+    const el = document.getElementById("result");
+    el.style.display = "block";
+    el.scrollIntoView({ behavior:"smooth" });
+  }
+
+  loadSettings();
+  renderPatterns();
+  renderInputs();
+</script>
+</body>
+</html>
