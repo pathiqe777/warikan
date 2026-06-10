@@ -1,0 +1,22 @@
+{
+  "name": "TMNF割り勘奉行",
+  "short_name": "割り勘奉行",
+  "description": "役職別傾斜割り勘計算アプリ",
+  "start_url": "/warikan/",
+  "display": "standalone",
+  "background_color": "#1A237E",
+  "theme_color": "#1A237E",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
