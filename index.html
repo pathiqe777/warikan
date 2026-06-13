@@ -140,7 +140,7 @@
     </div>
   </div>
   <div class="card">
-    <div class="card-title"><div class="icon" style="background:#E8F5E9">&#x1FA99;</div>&#x96C6;&#x91D1;&#x5358;&#x4F4D;&#xFF08;&#x7AEF;&#x6570;&#x306E;&#x5207;&#x308A;&#x4E0A;&#x3052;&#xFF09;</div>
+    <div class="card-title"><div class="icon" style="background:#E8F5E9">&#x1FA99;</div>&#x96C6;&#x91D1;&#x5358;&#x4F4D;&#xFF08;&#x56DB;&#x6368;&#x4E94;&#x5165;&#xFF09;</div>
     <div class="round-grid">
       <button class="round-btn" onclick="setRound(1)">&#x305D;&#x306E;&#x307E;&#x307E;</button>
       <button class="round-btn active" onclick="setRound(100)">100&#x5186;</button>
@@ -185,17 +185,17 @@
 </main>
 <footer>TMNF&#x5272;&#x308A;&#x52D8;&#x5949;&#x884C; &#x2014; &#x793E;&#x5185;&#x7528;&#x30C4;&#x30FC;&#x30EB;</footer>
 <script>
-  const ROLES=["DH","SC","MG","UL","SA","A"];
+  const ROLES=["DH","MG","UL","SA","A","ST"];
   const PATTERNS=[
-    {name:"気持ち傾斜",emoji:"🌊",desc:"ほんのり差をつける",rates:[1.5,1.3,1.15,1.05,1.0,0.85],heights:[18,14,11,9,8,6]},
+    {name:"気持ち傾斜",emoji:"❤️",desc:"ほんのり差をつける",rates:[1.5,1.3,1.15,1.05,1.0,0.85],heights:[18,14,11,9,8,6]},
     {name:"普通",emoji:"⚖️",desc:"自然な役職の差",rates:[2.2,1.8,1.4,1.15,0.95,0.7],heights:[20,16,12,10,8,5]},
-    {name:"太っ腹",emoji:"😄",desc:"上がドカンと負担",rates:[3.0,2.3,1.7,1.2,0.8,0.55],heights:[20,15,11,8,5,3]},
+    {name:"太っ腹",emoji:"💰",desc:"上がドカンと負担",rates:[3.0,2.3,1.7,1.2,0.8,0.55],heights:[20,15,11,8,5,3]},
     {name:"大盤振る舞い",emoji:"🎊",desc:"上位ががっつり持つ！",rates:[4.0,2.8,1.9,1.1,0.65,0.4],heights:[20,14,9,6,3,2]},
   ];
   let selectedPattern=1,roundUnit=100;
   const counts=[0,0,0,0,0,0];
   function setRound(u){roundUnit=u;document.querySelectorAll(".round-btn").forEach((b,i)=>b.classList.toggle("active",[1,100,500,1000][i]===u));updateBalance();}
-  function roundUp(v,u){return u<=1?Math.round(v):Math.ceil(v/u)*u;}
+  function roundUp(v,u){return u<=1?Math.round(v):Math.round(v/u)*u;}
   function renderPatterns(){
     document.getElementById("pattern-grid").innerHTML=PATTERNS.map((p,i)=>{
       const bars=p.heights.map(h=>`<div class="p-bar" style="height:${h}px"></div>`).join("");
